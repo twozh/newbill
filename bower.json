@@ -1,0 +1,28 @@
+{
+  "name": "bill",
+  "main": "user.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/twozh/user",
+  "authors": [
+    "twozh <xiaogen-zhang@163.com>"
+  ],
+  "description": "user management system",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "user",
+    "management"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.1"
+  }
+}
