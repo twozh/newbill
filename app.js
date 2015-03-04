@@ -8,14 +8,14 @@ var bodyParser = require('body-parser');
 var app = express();
 
 //mongodb
-var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost/user");
+//var mongoose = require('mongoose');
+//mongoose.connect("mongodb://localhost/user");
 
-//var routes = require('./routes/index');
-//var users = require('./routes/users');
+var routes = require('./routes/index');
+var users = require('./routes/users');
 
 // view engine setup
-app.set('views', path.join(__dirname, 'user/views'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
@@ -27,14 +27,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'bower_components')));
 
 //use express-session
-var session = require('express-session');
-app.use(session({secret: 'keyboard catt'}));
+//var session = require('express-session');
+//app.use(session({secret: 'keyboard catt'}));
 
 //use module user
-var user = require('./user');
-app.use('/api/user/', user.userApiRoute);
-app.use('/', user.userRoute);
-app.use(express.static(path.join(__dirname, 'user/public')));
+//var user = require('./user');
+//app.use('/api/user/', user.userApiRoute);
+//app.use('/', user.userRoute);
+//app.use(express.static(path.join(__dirname, 'user/public')));
+app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
