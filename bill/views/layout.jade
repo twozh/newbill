@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+  title= title || "账单--好用的记账工具"
+  meta(name="viewport", content="width=device-width, initial-scale=1.0")
+  link(rel='stylesheet', href='/bootstrap/dist/css/bootstrap.css')
+  link(rel='stylesheet', href='/bill-style.css')
+  block css
+  body
+    block jumbotron
+  .container#billApp
+    block content
+
+  //only have livereload.js in devlopment!!!
+  script(src="//localhost:35729/livereload.js")
+  script(src="/jquery/dist/jquery.min.js")
+  script(src="/bootstrap/dist/js/bootstrap.min.js")
+  block js
+  
