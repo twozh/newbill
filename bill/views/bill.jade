@@ -3,140 +3,125 @@ block css
   link(rel='stylesheet', href='/bootstrap-datepicker/css/datepicker3.css')
 
 block content
-  .row.head
-    .col-xs-4.col-sm-2
-      p #{user}
-    .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
-      button#create.btn.btn-default.pull-right 记一笔
-
-  //modal
-  .modal.fade#newBillModal(tabindex="-1")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          button.close(data-dismiss="modal") &times;
-          h4.modal-title 记一笔
-        .modal-body
-          form.form-horizontal(name="newBill")
-            .form-group
-              label.col-sm-2.control-label 简述
-              .col-sm-10
-                input#dscr.form-control(required)
-            .form-group
-              label.col-sm-2.control-label 分类
-              .col-sm-10
-                select#category.form-control(required)
-                  option 衣
-                  option 食
-                  option 住
-                  option 行
-                  option 用
-                  option 其它
-            .form-group
-              label.col-sm-2.control-label 花费
-              .col-sm-10
-                .input-group
-                  span.input-group-addon ￥
-                  input#spend.form-control(type="number", step="any", min=0, required)            
-            .form-group
-              .col-sm-offset-2.col-sm-10
-                button.btn.btn-default(data-dismiss="modal") 取消
-                | &nbsp;&nbsp;
-                button#save.btn.btn-default 保存
-                | &nbsp;&nbsp;
-                button#delete.btn.btn-default 删除  
-  hr
-  p <span id="year"></span>年 <span id="month"></span>月 总计 <strong id="month-total"></strong>元 &nbsp;&nbsp;
-    button.btn.btn-sm.btn-default(data-toggle="modal", data-target="#selMonthModal") 选择月份
-
-  //modal
-  .modal.fade#selMonthModal(tabindex="-1")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          button.close(data-dismiss="modal") &times;
-          h4.modal-title 选择月份
-        .modal-body
-          .datepicker
-  hr
-
-  //tabs
-  ul.nav.nav-tabs
-    li.active
-      a(href="#tab-month", data-toggle="tab") 本月流水
-    li
-      a(href="#tab-month-analysis", data-toggle="tab") 月账分析
-  br
-
-  //tab panes
-  .tab-content
-    .tab-pane.active#tab-month      
-      //table.table.table-striped
-      //  thead
-      //    tr
-      //      th 分类
-      //      th 简述
-      //      th 花费
-      //  tbody#billList
-      #billList
-
-    .tab-pane#tab-month-analysis      
-      p 本月目标: <strong id="goal"></strong>&nbsp;<button id="set" class="btn btn-default btn-sm">设置</button>
-      p 已完成: <strong id="complete"></strong>
-      hr
-      h4 TOP3
-      #topList
-      hr
-      h4 条状图
-      br
-      .row
-        .col-xs-2
-          p.text-right 衣
-        .progress
-            #cat1.progress-bar.progress-bar-danger(style="width: 0%") 5%
-      .row
-        .col-xs-2
-          p.text-right 食
-        .progress
-            #cat2.progress-bar.progress-bar-danger(style="width: 0%")
-      .row
-        .col-xs-2
-          p.text-right 住
-        .progress
-            #cat3.progress-bar.progress-bar-danger(style="width: 0%")
-      .row
-        .col-xs-2
-          p.text-right 行
-        .progress
-            #cat4.progress-bar.progress-bar-danger(style="width: 0%")
-      .row
-        .col-xs-2
-          p.text-right 用
-        .progress
-            #cat5.progress-bar.progress-bar-danger(style="width: 0%")
-      .row
-        .col-xs-2
-          p.text-right 其它
-        .progress
-            #cat6.progress-bar.progress-bar-danger(style="width: 0%")                                                
-
-  //script(type="text/template", id="item-template")
-  //  td <%- category %>
-  //  td 
-  //    <%- dscr %>
-  //    p <%- date %>
-  //  td <%- spend %>
-
-  script(type="text/template", id="item-template")
-    .row
-      .col-xs-2.text-center
-        p.cate <%- category %>
-      .col-xs-7
-        p.dscr <%- dscr %>
-        p.date <%- date %>
-      .col-xs-3
-        p.spend <%- spend %>
+  #mainView
+    .row.head
+      .col-xs-4.col-sm-2
+        p #{user}
+      .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
+        button#mainViewBtnAdd.btn.btn-default.pull-right 记一笔
     hr
+    p <span id="year"></span>年 <span id="month"></span>月 总计 <strong id="month-total"></strong>元 &nbsp;&nbsp;
+      button.btn.btn-sm.btn-default(data-toggle="modal", data-target="#selMonthModal") 选择月份
+ 
+    //modal
+    .modal.fade#selMonthModal(tabindex="-1")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(data-dismiss="modal") &times;
+            h4.modal-title 选择月份
+          .modal-body
+            .datepicker
+    hr
+
+    //tabs
+    ul.nav.nav-tabs
+      li.active
+        a(href="#tab-month", data-toggle="tab") 本月流水
+      li
+        a(href="#tab-month-analysis", data-toggle="tab") 月账分析
+    br
+
+    //tab panes
+    .tab-content
+      .tab-pane.active#tab-month      
+        #billList
+
+      .tab-pane#tab-month-analysis      
+        p 本月目标: <strong id="goal"></strong>&nbsp;<button id="set" class="btn btn-default btn-sm">设置</button>
+        p 已完成: <strong id="complete"></strong>
+        hr
+        h4 TOP3
+        #topList
+        hr
+        h4 条状图
+        br
+        .row
+          .col-xs-2
+            p.text-right 衣
+          .progress
+              #cat1.progress-bar.progress-bar-danger(style="width: 0%") 5%
+        .row
+          .col-xs-2
+            p.text-right 食
+          .progress
+              #cat2.progress-bar.progress-bar-danger(style="width: 0%")
+        .row
+          .col-xs-2
+            p.text-right 住
+          .progress
+              #cat3.progress-bar.progress-bar-danger(style="width: 0%")
+        .row
+          .col-xs-2
+            p.text-right 行
+          .progress
+              #cat4.progress-bar.progress-bar-danger(style="width: 0%")
+        .row
+          .col-xs-2
+            p.text-right 用
+          .progress
+              #cat5.progress-bar.progress-bar-danger(style="width: 0%")
+        .row
+          .col-xs-2
+            p.text-right 其它
+          .progress
+              #cat6.progress-bar.progress-bar-danger(style="width: 0%")                                                
+
+  #billAdd
+    .row.head
+      .col-xs-4.col-sm-2
+        p #{user}
+      .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
+        button#billAddViewBtnBack.btn.btn-default.pull-right Back
+    hr
+    form(name="addBill")
+      .form-header
+        h4 记一笔
+      .form-body
+        .form-group
+          label.col-sm-2.control-label 简述
+          .col-sm-10
+            input#billAddViewInDscr.form-control(required)
+        .form-group
+          label.col-sm-2.control-label 分类
+          .col-sm-10
+            select#billAddViewInCategory.form-control(required)
+              option 衣
+              option 食
+              option 住
+              option 行
+              option 用
+              option 其它
+        .form-group
+          label.col-sm-2.control-label 花费
+          .col-sm-10
+            .input-group
+              span.input-group-addon ￥
+              input#billAddViewInSpend.form-control(type="number", step="any", min=0, required)            
+        .form-group
+          .col-sm-offset-2.col-sm-10
+            button#billAddViewBtnSave.btn.btn-default 保存
+
+    script(type="text/template", id="item-template")
+      .row
+        .col-xs-2.text-center
+          p.cate <%- category %>
+        .col-xs-7
+          p.dscr <%- dscr %>
+          p.date <%- date %>
+        .col-xs-3
+          p.spend <%- spend %>
+      hr
 
 block js
   script(src="/bootstrap-datepicker/js/bootstrap-datepicker.js")

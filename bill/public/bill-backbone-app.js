@@ -1,5 +1,7 @@
 Backbone.emulateHTTP = true;
 
+var billApp = {};
+
 //Bill model
 var Bill = Backbone.Model.extend({
 	idAttribute: "_id",
@@ -39,6 +41,10 @@ var Bills = Backbone.Collection.extend({
 	}
 });
 
+billApp.bills = new Bills();
+billApp.monthGoal = new Goal();
+
+
 //Bill item view
 var BillView = Backbone.View.extend({
 	//tagName: "tr",
@@ -76,16 +82,9 @@ var BillView = Backbone.View.extend({
 		this.$el.html(this.template(m));
 		return this;
 	},
-	edit: function(){	
-		$('#newBillModal').modal({
-			backdrop: 'static',
-		});
-
-		$("#category").val(this.model.get('category'));
-		$("#spend").val(this.model.get('spend'));
-		$("#dscr").val(this.model.get('dscr'));
-		$("#save").data('id', this.model.id);
-		$("#delete").show();
+	edit: function(){
+		app.$el.hide();
+		addBillView.showWithModel(this.model);
 	},
 	pressStart: function(e){
 		//e.preventDefault();
@@ -101,14 +100,14 @@ var BillView = Backbone.View.extend({
 	},
 });
 
-//The App View
+//The app View
 var BillAppView = Backbone.View.extend({
-	el: $('#billApp'),
+	el: $('#mainView'),
 
 	events: {
 		"click #save": 		"createBill",
 		"click #delete": 	"deleteBill",
-		"click #create": 	"popCreateModal",
+		"click #mainViewBtnAdd": 	"switchToAddBillView",
 		"click #set": 		"setGoal",
 		"blur #inputGoal": 	"setGoal",
 		"keypress #inputGoal": "setGoalOnEnter",
@@ -116,16 +115,14 @@ var BillAppView = Backbone.View.extend({
 
 	initialize: function(){
 		this.setGoalIsInput = false;
-		this.bills = new Bills();
-		this.monthGoal = new Goal();
 		this.categoryPercent = [];
 
-		this.listenTo(this.bills, 'add', 	this.renderModel);
-		this.listenTo(this.bills, 'reset', 	this.renderCollection);
-		this.listenTo(this.bills, 'add', 	this.freshMonthTotal);
-		this.listenTo(this.bills, 'remove', this.freshMonthTotal);
-		this.listenTo(this.bills, 'reset', 	this.freshMonthTotal);
-		this.listenTo(this.monthGoal, 'change', this.freshMonthGoal);
+		this.listenTo(billApp.bills, 'add', 	this.renderModel);
+		this.listenTo(billApp.bills, 'reset', 	this.renderCollection);
+		this.listenTo(billApp.bills, 'add', 	this.freshMonthTotal);
+		this.listenTo(billApp.bills, 'remove', 	this.freshMonthTotal);
+		this.listenTo(billApp.bills, 'reset', 	this.freshMonthTotal);
+		this.listenTo(billApp.monthGoal, 'change', this.freshMonthGoal);
 
 		var d = new Date();
 		this.year = d.getFullYear();
@@ -139,7 +136,7 @@ var BillAppView = Backbone.View.extend({
 			todayHighlight: true
 		}).on('changeDate', this.selectDate);
 
-		this.monthGoal.fetch({
+		billApp.monthGoal.fetch({
 			error: function(){
 				console.log('fetch fail');
 			},
@@ -149,7 +146,7 @@ var BillAppView = Backbone.View.extend({
 			},
 		});
 
-		this.bills.fetch({
+		billApp.bills.fetch({
 			error: function(c, r, o){
 				alert("fetch fail");
 			},
@@ -167,24 +164,24 @@ var BillAppView = Backbone.View.extend({
 		var y = d.getFullYear();
 
 		if (!y) return;
-		App.year = y;
-		App.month = d.getMonth();
-		App.freshMonthYear();
+		app.year = y;
+		app.month = d.getMonth();
+		app.freshMonthYear();
 
 		$('#selMonthModal').modal('toggle');
 
-		App.monthGoal.clear({silent: true});
-		App.monthGoal.fetch({
+		billApp.monthGoal.clear({silent: true});
+		billApp.monthGoal.fetch({
 			error: function(){
 				console.log('fetch fail');
 			},
 			data: {
-				month: App.month,
-				year: App.year,
+				month: app.month,
+				year: app.year,
 			},
 		});
 
-		App.bills.fetch({
+		billApp.bills.fetch({
 			error: function(c, r, o){
 				alert("服务器异常，请刷新！");
 			},
@@ -202,11 +199,11 @@ var BillAppView = Backbone.View.extend({
 
 	renderCollection: function(){		
 		this.$('#billList').empty();		
-		if (this.bills.length === 0) return;
+		if (billApp.bills.length === 0) return;
 
 		var t = $("<p></p>");
 
-		this.bills.each(function(bill){
+		billApp.bills.each(function(bill){
 			var view = new BillView({model: bill});
 			t.append(view.render().el);
 		});
@@ -214,44 +211,11 @@ var BillAppView = Backbone.View.extend({
 		this.$('#billList').append(t.children());
 	},
 
-	createBill: function(){
-		if(!document.forms.newBill.checkValidity()){
-			return;
-		}
-		var data = {
-			category: $("#category").val(),
-			spend: $("#spend").val(),
-			dscr: $("#dscr").val(),
-		};
-
-		var id = $("#save").data('id');
-		
-		if (id){
-			this.bills.get(id).save(data, {
-				error: function(){
-					alert('服务器异常，请刷新！');
-				},
-				wait: true,
-				patch: true,
-			});
-		} else {
-			this.bills.create(data, {
-				wait: true,
-				error: function(){
-					alert("服务器异常，请刷新！");
-				},
-			});
-		}
-		$('#newBillModal').modal('hide');
-
-		return false;
-	},
-
 	deleteBill: function(){
 		var ret = confirm("Are you sure to delete?");
 		if (ret) {
 			var id = $("#save").data('id');
-			this.bills.get(id).destroy({
+			billApp.bills.get(id).destroy({
 				wait: true,
 				error: function(m, r, o){
 					alert("destroy fail");
@@ -264,17 +228,9 @@ var BillAppView = Backbone.View.extend({
 		return false;
 	},
 
-	popCreateModal: function(){		
-		$("#category").val('');
-		$("#spend").val('');
-		$("#dscr").val('');
-		$("#save").data('id', '');
-		$("#delete").hide();
-
-		//pop bootstrap modal dialog
-		$('#newBillModal').modal({
-			backdrop: 'static',
-		});
+	switchToAddBillView: function(){
+		this.$el.hide();
+		addBillView.show();
 	},
 
 	setGoalOnEnter: function(e){
@@ -282,7 +238,7 @@ var BillAppView = Backbone.View.extend({
 	},
 
 	setGoal: function(){
-		var goal = this.monthGoal.get('goal');
+		var goal = billApp.monthGoal.get('goal');
 
 		if (this.setGoalIsInput === false){
 			this.setGoalIsInput = true;
@@ -293,7 +249,7 @@ var BillAppView = Backbone.View.extend({
 			this.setGoalIsInput = false;			
 			var v = $('#inputGoal').val();
 			if (v > 0 && v !== goal){
-				this.monthGoal.save('goal', v, {
+				billApp.monthGoal.save('goal', v, {
 					error: function(){
 						alert('服务器异常，请刷新！');
 					},
@@ -308,7 +264,7 @@ var BillAppView = Backbone.View.extend({
 	},
 
 	freshMonthGoal: function(){
-		var goal = this.monthGoal.get('goal');
+		var goal = billApp.monthGoal.get('goal');
 		var total = this.monthTotal;
 
 		$('#goal').html(goal);
@@ -318,10 +274,10 @@ var BillAppView = Backbone.View.extend({
 	freshMonthTotal: function(){
 		var categoryStr = ['衣', '食', '住', '行', '用', '其它'];
 
-		this.monthTotal = this.bills.monthTotal();
+		this.monthTotal = billApp.bills.monthTotal();
 
 		for (var i=0; i<categoryStr.length; i++){
-			var cTotal = this.bills.categoryTotal(categoryStr[i]);
+			var cTotal = billApp.bills.categoryTotal(categoryStr[i]);
 			this.categoryPercent[i] = Math.round(cTotal/this.monthTotal *100);
 		}
 
@@ -342,7 +298,7 @@ var BillAppView = Backbone.View.extend({
 		this.freshMonthGoal();
 
 		//fresh top3
-		var s = this.bills.sortBy(function(bill){
+		var s = billApp.bills.sortBy(function(bill){
 			return bill.get('spend');
 		});
 		s = s.slice(s.length-3);
@@ -354,9 +310,96 @@ var BillAppView = Backbone.View.extend({
 		}
 	},
 
-	renderGraph: function(){
+});
 
+//The add bill View
+var AddBillView = Backbone.View.extend({
+	el: $('#billAdd'),
+
+	events: {
+		"click #billAddViewBtnBack": 		"cancel",
+		"click #billAddViewBtnSave": 		"createBill",		
+	},
+
+	initialize: function(){
+		this.$el.hide();
+	},
+
+	show: function(){
+		$("#billAddViewInCategory").val('');
+		$("#billAddViewInSpend").val('');
+		$("#billAddViewInDscr").val('');
+		$("#billAddViewBtnSave").data('id', '');
+		//$("#delete").hide();
+
+		this.$el.show();
+	},
+
+	showWithModel: function(model){
+		$("#billAddViewInCategory").val(model.get('category'));
+		$("#billAddViewInSpend").val(model.get('spend'));
+		$("#billAddViewInDscr").val(model.get('dscr'));
+		$("#billAddViewBtnSave").data('id', model.id);
+		//$("#delete").show();
+
+		this.$el.show();
+	},
+
+	cancel: function(){
+		this.$el.hide();
+		app.$el.show();
+	},
+
+	createBill: function(){
+		if(!document.forms.addBill.checkValidity()){
+			return;
+		}
+		var data = {
+			category: $("#billAddViewInCategory").val(),
+			spend: $("#billAddViewInSpend").val(),
+			dscr: $("#billAddViewInDscr").val(),
+		};
+
+		var id = $("#billAddViewBtnSave").data('id');
+		
+		if (id){
+			billApp.bills.get(id).save(data, {
+				error: function(){
+					alert('服务器异常，请刷新！');
+				},
+				wait: true,
+				patch: true,
+			});
+		} else {
+			billApp.bills.create(data, {
+				wait: true,
+				error: function(){
+					alert("服务器异常，请刷新！");
+				},
+			});			
+		}
+
+		this.cancel();
+
+		return false;
 	},
 });
 
-var App = new BillAppView();
+var app = new BillAppView();
+var addBillView = new AddBillView();
+
+
+var AppRouter = Backbone.Router.extend({
+    routes: {
+        "*actions": "defaultRoute" // matches http://example.com/#anything-here
+    }
+});
+// Initiate the router
+var app_router = new AppRouter();
+
+app_router.on('route:defaultRoute', function(actions) {
+    alert(actions);
+});
+
+// Start Backbone history a necessary step for bookmarkable URL's
+Backbone.history.start({silent: true});
