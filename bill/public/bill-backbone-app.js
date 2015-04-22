@@ -75,16 +75,14 @@ var BillView = Backbone.View.extend({
 		if (ss<10) ss = '0' + ss;
 		return day+'日 '+week[w]+' '+hh+':'+mm+':'+ss;
 	},
-
+	edit: function(){
+		app.switchToAddBillView(this.model);
+	},
 	render: function(){
 		var m = this.model.toJSON();
 		m.date = this.dateFormat(m.date);
 		this.$el.html(this.template(m));
 		return this;
-	},
-	edit: function(){
-		app.$el.hide();
-		addBillView.showWithModel(this.model);
 	},
 	pressStart: function(e){
 		//e.preventDefault();
@@ -101,19 +99,19 @@ var BillView = Backbone.View.extend({
 });
 
 //The app View
-var BillAppView = Backbone.View.extend({
+var MainView = Backbone.View.extend({
 	el: $('#mainView'),
 
 	events: {
-		"click #save": 		"createBill",
-		"click #delete": 	"deleteBill",
-		"click #mainViewBtnAdd": 	"switchToAddBillView",
+		"click #mainViewBtnAdd": function(){this.switchToAddBillView();},
+		"click #mainViewBtnChooseData": "switchToChooseDataView",		
 		"click #set": 		"setGoal",
 		"blur #inputGoal": 	"setGoal",
 		"keypress #inputGoal": "setGoalOnEnter",
 	},
 
 	initialize: function(){
+		var that = this;
 		this.setGoalIsInput = false;
 		this.categoryPercent = [];
 
@@ -129,7 +127,12 @@ var BillAppView = Backbone.View.extend({
 		this.month = d.getMonth();
 		this.freshMonthYear();
 
-		this.$(".datepicker").datepicker({		
+		/* initialize datepicker view */
+		$('#chooseDateBtnCancel').click(function(e){
+			that.switchToMainView($('#chooseDate'));
+			return false;
+		});
+		$(".datepicker").datepicker({		
 			language: "zh-CN",
 			minViewMode: 1,
 			orientation: "top auto",
@@ -211,28 +214,18 @@ var BillAppView = Backbone.View.extend({
 		this.$('#billList').append(t.children());
 	},
 
-	deleteBill: function(){
-		var ret = confirm("Are you sure to delete?");
-		if (ret) {
-			var id = $("#save").data('id');
-			billApp.bills.get(id).destroy({
-				wait: true,
-				error: function(m, r, o){
-					alert("destroy fail");
-				},				
-			});
-
-			$('#newBillModal').modal('hide');
-		}
-
-		return false;
-	},
-
-	switchToAddBillView: function(){
+	switchToAddBillView: function(model){
 		this.$el.hide();
-		addBillView.show();
+		addBillView.show(model);
 	},
-
+	switchToChooseDataView:function(){
+		this.$el.hide();
+		$('#chooseDate').show();
+	},
+	switchToMainView: function($el){
+		$el.hide();
+		this.$el.show();
+	},
 	setGoalOnEnter: function(e){
 		if (e.keyCode == 13) this.setGoal();
 	},
@@ -314,40 +307,37 @@ var BillAppView = Backbone.View.extend({
 
 //The add bill View
 var AddBillView = Backbone.View.extend({
-	el: $('#billAdd'),
+	el: $('#addBill'),
 
 	events: {
-		"click #billAddViewBtnBack": 		"cancel",
-		"click #billAddViewBtnSave": 		"createBill",		
+		"click #addBillViewBtnBack": 
+			function(){app.switchToMainView(this.$el)},
+		"click #addBillViewBtnCancel": 
+			function(){app.switchToMainView(this.$el); return false},
+		"click #addBillViewBtnSave": 		"createBill",
+		"click #addBillViewBtnDelete": 		"deleteBill",
 	},
 
 	initialize: function(){
 		this.$el.hide();
 	},
 
-	show: function(){
-		$("#billAddViewInCategory").val('');
-		$("#billAddViewInSpend").val('');
-		$("#billAddViewInDscr").val('');
-		$("#billAddViewBtnSave").data('id', '');
-		//$("#delete").hide();
+	show: function(model){
+		if (model){
+			$("#addBillViewInCategory").val(model.get('category'));
+			$("#addBillViewInSpend").val(model.get('spend'));
+			$("#addBillViewInDscr").val(model.get('dscr'));
+			$("#addBillViewBtnSave").data('id', model.id);
+			$("#addBillViewBtnDelete").show();
+		} else {
+			$("#addBillViewInCategory").val('');
+			$("#addBillViewInSpend").val('');
+			$("#addBillViewInDscr").val('');
+			$("#addBillViewBtnSave").data('id', '');
+			$("#addBillViewBtnDelete").hide();
+		}		
 
 		this.$el.show();
-	},
-
-	showWithModel: function(model){
-		$("#billAddViewInCategory").val(model.get('category'));
-		$("#billAddViewInSpend").val(model.get('spend'));
-		$("#billAddViewInDscr").val(model.get('dscr'));
-		$("#billAddViewBtnSave").data('id', model.id);
-		//$("#delete").show();
-
-		this.$el.show();
-	},
-
-	cancel: function(){
-		this.$el.hide();
-		app.$el.show();
 	},
 
 	createBill: function(){
@@ -355,12 +345,12 @@ var AddBillView = Backbone.View.extend({
 			return;
 		}
 		var data = {
-			category: $("#billAddViewInCategory").val(),
-			spend: $("#billAddViewInSpend").val(),
-			dscr: $("#billAddViewInDscr").val(),
+			category: $("#addBillViewInCategory").val(),
+			spend: $("#addBillViewInSpend").val(),
+			dscr: $("#addBillViewInDscr").val(),
 		};
 
-		var id = $("#billAddViewBtnSave").data('id');
+		var id = $("#addBillViewBtnSave").data('id');
 		
 		if (id){
 			billApp.bills.get(id).save(data, {
@@ -379,13 +369,29 @@ var AddBillView = Backbone.View.extend({
 			});			
 		}
 
-		this.cancel();
+		app.switchToMainView(this.$el);
 
+		return false;
+	},
+
+	deleteBill: function(){
+		var ret = confirm("Are you sure to delete?");
+		if (ret) {
+			var id = $("#addBillViewBtnSave").data('id');
+			billApp.bills.get(id).destroy({
+				wait: true,
+				error: function(m, r, o){
+					alert("destroy fail");
+				},				
+			});
+
+			app.switchToMainView(this.$el);			
+		}
 		return false;
 	},
 });
 
-var app = new BillAppView();
+var app = new MainView();
 var addBillView = new AddBillView();
 
 

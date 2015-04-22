@@ -11,17 +11,8 @@ block content
         button#mainViewBtnAdd.btn.btn-default.pull-right 记一笔
     hr
     p <span id="year"></span>年 <span id="month"></span>月 总计 <strong id="month-total"></strong>元 &nbsp;&nbsp;
-      button.btn.btn-sm.btn-default(data-toggle="modal", data-target="#selMonthModal") 选择月份
- 
-    //modal
-    .modal.fade#selMonthModal(tabindex="-1")
-      .modal-dialog
-        .modal-content
-          .modal-header
-            button.close(data-dismiss="modal") &times;
-            h4.modal-title 选择月份
-          .modal-body
-            .datepicker
+      button#mainViewBtnChooseData.btn.btn-sm.btn-default 选择月份
+
     hr
 
     //tabs
@@ -75,14 +66,14 @@ block content
           .col-xs-2
             p.text-right 其它
           .progress
-              #cat6.progress-bar.progress-bar-danger(style="width: 0%")                                                
+              #cat6.progress-bar.progress-bar-danger(style="width: 0%")
 
-  #billAdd
+  #addBill(style="display:none")
     .row.head
       .col-xs-4.col-sm-2
         p #{user}
       .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
-        button#billAddViewBtnBack.btn.btn-default.pull-right Back
+        button#addBillViewBtnBack.btn.btn-default.pull-right 返回
     hr
     form(name="addBill")
       .form-header
@@ -91,11 +82,11 @@ block content
         .form-group
           label.col-sm-2.control-label 简述
           .col-sm-10
-            input#billAddViewInDscr.form-control(required)
+            input#addBillViewInDscr.form-control(required)
         .form-group
           label.col-sm-2.control-label 分类
           .col-sm-10
-            select#billAddViewInCategory.form-control(required)
+            select#addBillViewInCategory.form-control(required)
               option 衣
               option 食
               option 住
@@ -107,21 +98,38 @@ block content
           .col-sm-10
             .input-group
               span.input-group-addon ￥
-              input#billAddViewInSpend.form-control(type="number", step="any", min=0, required)            
+              input#addBillViewInSpend.form-control(type="number", step="any", min=0, required)            
         .form-group
           .col-sm-offset-2.col-sm-10
-            button#billAddViewBtnSave.btn.btn-default 保存
+            button#addBillViewBtnCancel.btn.btn-default 取消
+            | &nbsp;
+            button#addBillViewBtnSave.btn.btn-default 保存
+            | &nbsp;
+            button#addBillViewBtnDelete.btn.btn-default 删除
 
-    script(type="text/template", id="item-template")
-      .row
-        .col-xs-2.text-center
-          p.cate <%- category %>
-        .col-xs-7
-          p.dscr <%- dscr %>
-          p.date <%- date %>
-        .col-xs-3
-          p.spend <%- spend %>
-      hr
+  #chooseDate(style="display:none")
+    form
+      .form-header
+        h4 Choose Date
+      .form-body
+        .datepicker
+        .form-group
+          button#chooseDateBtnCancel.btn.btn-default Cancel
+          | &nbsp;
+          button#chooseDateBtnOK.btn.btn-default OK
+
+  script(type="text/template", id="item-template")
+    .row
+      .col-xs-2.text-center
+        p.cate <%- category %>
+      .col-xs-7
+        p.dscr <%- dscr %>
+        p.date <%- date %>
+      .col-xs-3
+        p.spend <%- spend %>
+    hr
+
+  
 
 block js
   script(src="/bootstrap-datepicker/js/bootstrap-datepicker.js")
