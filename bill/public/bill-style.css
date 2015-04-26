@@ -53,3 +53,12 @@ hr {
   margin-top: 4px;
   margin-bottom: 8px;
 }
+
+.datepicker {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.copyright{
+  color: #888;
+}

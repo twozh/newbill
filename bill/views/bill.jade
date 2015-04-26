@@ -10,26 +10,25 @@ block content
       .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
         button#mainViewBtnAdd.btn.btn-default.pull-right 记一笔
     hr
-    p <span id="year"></span>年 <span id="month"></span>月 总计 <strong id="month-total"></strong>元 &nbsp;&nbsp;
+    p <span id="mainViewSpanYear"></span>年 <span id="mainViewSpanMonth"></span>月 总计 <strong id="mainViewMonthTotal"></strong>元 &nbsp;&nbsp;
       button#mainViewBtnChooseData.btn.btn-sm.btn-default 选择月份
-
     hr
 
     //tabs
     ul.nav.nav-tabs
       li.active
-        a(href="#tab-month", data-toggle="tab") 本月流水
+        a(href="#mainViewTabMonth", data-toggle="tab") 本月流水
       li
-        a(href="#tab-month-analysis", data-toggle="tab") 月账分析
+        a(href="#mainViewTabMonthAnalysis", data-toggle="tab") 月账分析
     br
 
     //tab panes
     .tab-content
-      .tab-pane.active#tab-month      
-        #billList
+      .tab-pane.active#mainViewTabMonth      
+        #mainViewBillList
 
-      .tab-pane#tab-month-analysis      
-        p 本月目标: <strong id="goal"></strong>&nbsp;<button id="set" class="btn btn-default btn-sm">设置</button>
+      .tab-pane#mainViewTabMonthAnalysis      
+        p 本月目标: <strong id="mainViewSpanGoal"></strong>&nbsp;<button id="mainViewBtnSetGoal" class="btn btn-default btn-sm">设置</button>
         p 已完成: <strong id="complete"></strong>
         hr
         h4 TOP3
@@ -68,12 +67,18 @@ block content
           .progress
               #cat6.progress-bar.progress-bar-danger(style="width: 0%")
 
+    br
+    br
+    br
+    br
+    hr
+    p.text-center.copyright
+      | &copy; Jiansoft.com
+
   #addBill(style="display:none")
     .row.head
       .col-xs-4.col-sm-2
         p #{user}
-      .col-xs-4.col-xs-offset-4.col-sm-2.col-sm-offset-8    
-        button#addBillViewBtnBack.btn.btn-default.pull-right 返回
     hr
     form(name="addBill")
       .form-header
@@ -109,14 +114,16 @@ block content
 
   #chooseDate(style="display:none")
     form
-      .form-header
-        h4 Choose Date
+      .form-header.text-center
+        h4 选择月份
       .form-body
         .datepicker
-        .form-group
-          button#chooseDateBtnCancel.btn.btn-default Cancel
+        .form-group.text-center
+          button#chooseDateBtnCancel.btn.btn-default 取消
           | &nbsp;
-          button#chooseDateBtnOK.btn.btn-default OK
+          button#chooseDateBtnOK.btn.btn-default 确认
+
+  
 
   script(type="text/template", id="item-template")
     .row

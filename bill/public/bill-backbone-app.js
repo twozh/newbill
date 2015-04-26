@@ -105,9 +105,11 @@ var MainView = Backbone.View.extend({
 	events: {
 		"click #mainViewBtnAdd": function(){this.switchToAddBillView();},
 		"click #mainViewBtnChooseData": "switchToChooseDataView",		
-		"click #set": 		"setGoal",
-		"blur #inputGoal": 	"setGoal",
-		"keypress #inputGoal": "setGoalOnEnter",
+		"click #mainViewBtnSetGoal": 	"setGoal",
+		"blur #mainViewInGoal": 		"setGoal",
+		"keypress #mainViewInGoal": 	function(e){
+			if (e.keyCode == 13) this.setGoal();
+		},
 	},
 
 	initialize: function(){
@@ -120,6 +122,7 @@ var MainView = Backbone.View.extend({
 		this.listenTo(billApp.bills, 'add', 	this.freshMonthTotal);
 		this.listenTo(billApp.bills, 'remove', 	this.freshMonthTotal);
 		this.listenTo(billApp.bills, 'reset', 	this.freshMonthTotal);
+		this.listenTo(billApp.bills, 'change', 	this.freshMonthTotal);
 		this.listenTo(billApp.monthGoal, 'change', this.freshMonthGoal);
 
 		var d = new Date();
@@ -128,16 +131,24 @@ var MainView = Backbone.View.extend({
 		this.freshMonthYear();
 
 		/* initialize datepicker view */
-		$('#chooseDateBtnCancel').click(function(e){
+		$('#chooseDateBtnCancel').click(function(){
 			that.switchToMainView($('#chooseDate'));
 			return false;
 		});
+
+		$('#chooseDateBtnOK').click(function(){
+			var d = $(".datepicker").datepicker('getDate');
+
+			that.switchToMainView($('#chooseDate'), d);
+
+			return false;
+		});
+
 		$(".datepicker").datepicker({		
 			language: "zh-CN",
 			minViewMode: 1,
-			orientation: "top auto",
-			todayHighlight: true
-		}).on('changeDate', this.selectDate);
+			todayBtn: "linked",
+		});
 
 		billApp.monthGoal.fetch({
 			error: function(){
@@ -157,21 +168,53 @@ var MainView = Backbone.View.extend({
 		});		
 	},
 
-	freshMonthYear: function(){
-		$('#year').html(this.year);
-		$('#month').html(this.month + 1);
+	renderModel: function(bill){
+		var view = new BillView({model: bill});
+		this.$('#mainViewBillList').prepend(view.render().el);
 	},
 
-	selectDate: function(){
-		var d = $(".datepicker").datepicker('getDate');
+	renderCollection: function(){		
+		this.$('#mainViewBillList').empty();		
+		if (billApp.bills.length === 0) return;
+
+		var t = $("<p></p>");
+
+		billApp.bills.each(function(bill){
+			var view = new BillView({model: bill});
+			t.append(view.render().el);
+		});
+
+		this.$('#mainViewBillList').append(t.children());
+	},
+
+	switchToAddBillView: function(model){		
+		this.$el.hide();
+		addBillView.show(model);
+		appRouter.navigate("add");
+	},
+	switchToChooseDataView:function(){
+		this.$el.hide();
+		$('#chooseDate').show();
+	},
+	switchToMainView: function($el, date){
+		$el.hide();
+		this.$el.show();		
+
+		if (date){
+			if (date.getTime()){
+				this.selectDate(date);
+			}
+		}
+		appRouter.navigate("");
+	},
+
+	selectDate: function(d){
 		var y = d.getFullYear();
 
 		if (!y) return;
 		app.year = y;
 		app.month = d.getMonth();
 		app.freshMonthYear();
-
-		$('#selMonthModal').modal('toggle');
 
 		billApp.monthGoal.clear({silent: true});
 		billApp.monthGoal.fetch({
@@ -195,52 +238,17 @@ var MainView = Backbone.View.extend({
 		});		
 	},
 
-	renderModel: function(bill){
-		var view = new BillView({model: bill});
-		this.$('#billList').prepend(view.render().el);
-	},
-
-	renderCollection: function(){		
-		this.$('#billList').empty();		
-		if (billApp.bills.length === 0) return;
-
-		var t = $("<p></p>");
-
-		billApp.bills.each(function(bill){
-			var view = new BillView({model: bill});
-			t.append(view.render().el);
-		});
-
-		this.$('#billList').append(t.children());
-	},
-
-	switchToAddBillView: function(model){
-		this.$el.hide();
-		addBillView.show(model);
-	},
-	switchToChooseDataView:function(){
-		this.$el.hide();
-		$('#chooseDate').show();
-	},
-	switchToMainView: function($el){
-		$el.hide();
-		this.$el.show();
-	},
-	setGoalOnEnter: function(e){
-		if (e.keyCode == 13) this.setGoal();
-	},
-
 	setGoal: function(){
 		var goal = billApp.monthGoal.get('goal');
 
 		if (this.setGoalIsInput === false){
 			this.setGoalIsInput = true;
-			$('#goal').html("<input id='inputGoal' type=number>");
-			$('#inputGoal').val(goal).focus();
-			$('#set').hide();
+			$('#mainViewSpanGoal').html("<input id='mainViewInGoal' type=number>");
+			$('#mainViewInGoal').val(goal).focus();
+			$('#mainViewBtnSetGoal').hide();
 		} else{
 			this.setGoalIsInput = false;			
-			var v = $('#inputGoal').val();
+			var v = $('#mainViewInGoal').val();
 			if (v > 0 && v !== goal){
 				billApp.monthGoal.save('goal', v, {
 					error: function(){
@@ -251,16 +259,21 @@ var MainView = Backbone.View.extend({
 				});
 			}
 				
-			$('#goal').html(goal);			
-			$('#set').show();		
+			$('#mainViewSpanGoal').html(goal);			
+			$('#mainViewBtnSetGoal').show();		
 		}
 	},
+
+	freshMonthYear: function(){
+		$('#mainViewSpanYear').html(this.year);
+		$('#mainViewSpanMonth').html(this.month + 1);
+	},	
 
 	freshMonthGoal: function(){
 		var goal = billApp.monthGoal.get('goal');
 		var total = this.monthTotal;
 
-		$('#goal').html(goal);
+		$('#mainViewSpanGoal').html(goal);
 		$('#complete').html(Math.round(total/goal * 100) + ' %');
 	},
 
@@ -274,7 +287,7 @@ var MainView = Backbone.View.extend({
 			this.categoryPercent[i] = Math.round(cTotal/this.monthTotal *100);
 		}
 
-		$('#month-total').html(this.monthTotal);
+		$('#mainViewMonthTotal').html(this.monthTotal);
 		$('#cat1').attr('style', "width: "+this.categoryPercent[0]+'%');
 		$('#cat2').attr('style', "width: "+this.categoryPercent[1]+'%');
 		$('#cat3').attr('style', "width: "+this.categoryPercent[2]+'%');
@@ -310,8 +323,6 @@ var AddBillView = Backbone.View.extend({
 	el: $('#addBill'),
 
 	events: {
-		"click #addBillViewBtnBack": 
-			function(){app.switchToMainView(this.$el)},
 		"click #addBillViewBtnCancel": 
 			function(){app.switchToMainView(this.$el); return false},
 		"click #addBillViewBtnSave": 		"createBill",
@@ -394,18 +405,18 @@ var AddBillView = Backbone.View.extend({
 var app = new MainView();
 var addBillView = new AddBillView();
 
-
 var AppRouter = Backbone.Router.extend({
-    routes: {
-        "*actions": "defaultRoute" // matches http://example.com/#anything-here
-    }
+	routes: {
+		"add"		: function(){
+			app.switchToAddBillView();
+		},
+		"(/)"			: function(){
+			app.switchToMainView($('#addBill'));
+		},
+	}
 });
 // Initiate the router
-var app_router = new AppRouter();
-
-app_router.on('route:defaultRoute', function(actions) {
-    alert(actions);
-});
+var appRouter = new AppRouter();
 
 // Start Backbone history a necessary step for bookmarkable URL's
 Backbone.history.start({silent: true});
