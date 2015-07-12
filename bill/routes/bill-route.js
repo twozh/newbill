@@ -35,6 +35,27 @@ var apiRetrieveBills = function(req, res){
 	});
 };
 
+var apiCalcYearTotal = function(req, res){
+	var year = req.body.year;
+	var d = new Date();
+	d.setFullYear(year);
+	var value = 0;
+	Bill.getBillsByUseridAndYear(req.session.userid, d, function(err, bills){
+		if (err){
+			bills = [];
+			return res.send({value: 0});
+		} 
+
+		for (var i=0; i < bills.length; i++){
+			value += bills[i].spend;
+		}
+
+		res.send({value: value});		
+	});
+
+	
+};
+
 var apiCreateBill = function(req, res){
 	req.body.user = req.session.userid;
 
@@ -124,6 +145,8 @@ var apiUpdateGoal = function(req, res){
 	});
 };
 
+
+
 //user register&log
 router.get('/', 		index);
 
@@ -137,6 +160,9 @@ router.delete('/api/bills/:id', verifySession, apiDeleteBill);
 //CRUD-month goal
 router.get('/api/goal', 		verifySession, apiRetrieveGoal);
 router.patch('/api/goal/:id', 	verifySession, apiUpdateGoal);
+
+//ajax post
+router.post('/api/bills/calcyear', verifySession, apiCalcYearTotal);
 
 exports.route = router;
 exports.index = index;

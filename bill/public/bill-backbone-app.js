@@ -314,6 +314,10 @@ var MainView = Backbone.View.extend({
 			var view = new BillView({model: s[i]});
 			$('#topList').prepend(view.render().el);
 		}
+
+		$.post('/bill/api/bills/calcyear', {year: app.year}, function(data, st){			
+			$('#mainViewYearTotal').html(data.value);
+		});
 	},
 
 });
