@@ -9,7 +9,7 @@ var app = express();
 
 //use mongoose
 var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost/bill2");
+mongoose.connect('mongodb://localhost/bill2');
 
 // view engine setup
 var views = [
@@ -30,7 +30,26 @@ app.use(express.static(path.join(__dirname, 'bower_components')));
 
 //use express-session
 var session = require('express-session');
-app.use(session({secret: 'keyboard catt'}));
+var MongoDBStore = require('connect-mongodb-session')(session);
+var store = new MongoDBStore({ 
+    uri: 'mongodb://localhost/bill2',
+    collection: 'mySessions'
+});
+store.on('error', function(error) {
+    console.error(error);
+});
+
+app.use(session({
+    name: 'sid-bill',
+    secret: 'random string',
+    resave: false,
+    saveUninitialized: true,
+    cookie:{maxAge: 1000 * 60 * 60 * 24 * 7},
+    store: store,
+    /* rolling:  Force a cookie to be set on every response.
+       This resets the expiration date. */
+    rolling: true,    
+}));
 
 //use method-override
 var methodOverride = require('method-override');
