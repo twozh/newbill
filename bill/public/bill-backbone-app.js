@@ -38,7 +38,15 @@ var Bills = Backbone.Collection.extend({
 				t += e.get('spend');
 		});
 		return t;
-	}
+	},
+	memberTotal: function(category){
+		var t = 0;
+		this.each(function(e){
+			if (e.get('member') === category)
+				t += e.get('spend');
+		});
+		return t;
+	},
 });
 
 billApp.bills = new Bills();
@@ -81,6 +89,8 @@ var BillView = Backbone.View.extend({
 	render: function(){
 		var m = this.model.toJSON();
 		m.date = this.dateFormat(m.date);
+		console.log(m);
+		if (!m.member) m.member="";
 		this.$el.html(this.template(m));
 		return this;
 	},
@@ -279,12 +289,19 @@ var MainView = Backbone.View.extend({
 
 	freshMonthTotal: function(){
 		var categoryStr = ['衣', '食', '住', '行', '用', '其它'];
+		var memberStr = ['我', '他', '果果'];
+		var memberPercent = [];
 
 		this.monthTotal = billApp.bills.monthTotal();
 
 		for (var i=0; i<categoryStr.length; i++){
 			var cTotal = billApp.bills.categoryTotal(categoryStr[i]);
 			this.categoryPercent[i] = Math.round(cTotal/this.monthTotal *100);
+		}
+
+		for (i=0; i<memberStr.length; i++){
+			var cTotal = billApp.bills.memberTotal(memberStr[i]);
+			memberPercent[i] = Math.round(cTotal/this.monthTotal *100);
 		}
 
 		$('#mainViewMonthTotal').html(this.monthTotal);
@@ -300,6 +317,14 @@ var MainView = Backbone.View.extend({
 		$('#cat4').html(this.categoryPercent[3]+'%');
 		$('#cat5').html(this.categoryPercent[4]+'%');
 		$('#cat6').html(this.categoryPercent[5]+'%');
+
+		$('#catMe').attr('style', "width: "+memberPercent[0]+'%');
+		$('#catHe').attr('style', "width: "+memberPercent[1]+'%');
+		$('#catGuoguo').attr('style', "width: "+memberPercent[2]+'%');
+
+		$('#catMe').html(memberPercent[0]+'%');
+		$('#catHe').html(memberPercent[1]+'%');
+		$('#catGuoguo').html(memberPercent[2]+'%');
 
 		this.freshMonthGoal();
 
@@ -340,12 +365,14 @@ var AddBillView = Backbone.View.extend({
 	show: function(model){
 		if (model){
 			$("#addBillViewInCategory").val(model.get('category'));
+			$("#addBillViewInMember").val(model.get('member'));
 			$("#addBillViewInSpend").val(model.get('spend'));
 			$("#addBillViewInDscr").val(model.get('dscr'));
 			$("#addBillViewBtnSave").data('id', model.id);
 			$("#addBillViewBtnDelete").show();
 		} else {
 			$("#addBillViewInCategory").val('');
+			$("#addBillViewInMember").val('');
 			$("#addBillViewInSpend").val('');
 			$("#addBillViewInDscr").val('');
 			$("#addBillViewBtnSave").data('id', '');
@@ -363,6 +390,7 @@ var AddBillView = Backbone.View.extend({
 			category: $("#addBillViewInCategory").val(),
 			spend: $("#addBillViewInSpend").val(),
 			dscr: $("#addBillViewInDscr").val(),
+			member: $("#addBillViewInMember").val(),
 		};
 
 		var id = $("#addBillViewBtnSave").data('id');

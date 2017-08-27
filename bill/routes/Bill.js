@@ -9,6 +9,7 @@ var billSchema = new Schema({
 	dscr	: {type: String},
 	date   	: {type: Date, default: Date.now, required: true},
 	image	: [String],
+	member	: {type: String},
 });
 
 billSchema.statics.getBillsByUseridAndMonth = function(userid, date, cb){

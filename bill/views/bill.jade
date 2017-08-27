@@ -67,7 +67,23 @@ block content
             p.text-right 其它
           .progress
               #cat6.progress-bar.progress-bar-danger(style="width: 0%")
-
+        h4 成员
+        br
+        .row
+          .col-xs-2
+            p.text-right 我
+          .progress
+              #catMe.progress-bar.progress-bar-danger(style="width: 0%") 5%
+        .row
+          .col-xs-2
+            p.text-right 他
+          .progress
+              #catHe.progress-bar.progress-bar-danger(style="width: 0%")
+        .row
+          .col-xs-2
+            p.text-right 果果
+          .progress
+              #catGuoguo.progress-bar.progress-bar-danger(style="width: 0%")
     br
     br
     br
@@ -100,6 +116,13 @@ block content
               option 用
               option 其它
         .form-group
+          label.col-sm-2.control-label 成员
+          .col-sm-10
+            select#addBillViewInMember.form-control(required)
+              option 我
+              option 他
+              option 果果
+        .form-group
           label.col-sm-2.control-label 花费
           .col-sm-10
             .input-group
@@ -130,6 +153,7 @@ block content
     .row
       .col-xs-2.text-center
         p.cate <%- category %>
+        p.date <%- member %>
       .col-xs-7
         p.dscr <%- dscr %>
         p.date <%- date %>
